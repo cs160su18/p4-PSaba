@@ -1,0 +1,80 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>P4 Drawing</title>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'draw/vendor/bootstrap/css/bootstrap.min.css' %}">
+    <script type="text/javascript" src="{% static 'draw/vendor/jquery/jquery-3.3.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'draw/vendor/paper/paper-full.min.js' %}"></script>
+
+    <style type="text/css">
+    </style>
+
+</head>
+<body class="bg-secondary text-success">
+    <!-- You may change the dimensions of this canvas -->  
+    <h1>
+      Welcome!
+    </h1>
+  <div id="phrase" class="bg-secondary text-white" style="font-size:100px;">
+    Scan code to continue
+  </div>
+  <a href="http://p4-psaba-psaba112307108.codeanyapp.com:8000/draw/room/?=small">
+    <img src="{% static 'draw/frame.png' %}" alt="QR Code">
+  </a>
+<!--     <canvas id="myCanvas" width="750px" height="750px"></canvas> -->
+  <form id="dareSubmit"></form>
+</body>
+<script>
+//paper.install(window);
+  //window.onload = function() {
+    // setting up the canvas and one paper tool
+    var clientId = parseInt(Math.random() * 10000000);
+    var socket = new WebSocket('ws://p4-psaba-psaba112307108.codeanyapp.com:8765/');
+    socket.onload
+    function sendDare(event){
+      console.log(event);
+    }
+  $('#dareSubmit').on('submit', function(e){
+    e.preventDefault();
+    var object = {
+      type: "answer",
+      name: document.getElementById("dareSubmit").elements[0].value,
+      drink1: document.getElementById("dareSubmit").elements[1].value,
+      drink2: document.getElementById("dareSubmit").elements[2].value,
+      dare: document.getElementById("dareSubmit").elements[3].value
+    }
+     socket.send(JSON.stringify(object)); 
+  });
+  
+    function runSmall(){
+      console.log("on phone");
+      $("#dareSubmit").html('<input type="text" name="Name" value="name"><input type="text" name="Drink 1" value="drink1"><input type="text" name="Drink 2" value="drink2"><input type="text" name="Dare" value="dare"><input type="submit" class="btn btn-success"></button>');
+    }
+    
+    function runBig(){
+      socket.onmessage = function(receivedMessage) {
+            // do something when you receive a message
+            var data = JSON.parse(receivedMessage.data);
+            if (data.type === "answer"){
+              $("#phrase").html( '<a class="text-success">' + data.name + '</a> drank a cup of <a class="text-success">' + data.drink1 + '</a> and <a class="text-success">' + data.drink2 + '</a> and then <a class="text-success">' + data.dare + '</a>');
+            } 
+        }
+    }
+  
+    socket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    var url = window.location.href;
+		if (url.indexOf("small") > -1) {
+			runSmall()
+		} else {
+	  	runBig()
+		}
+
+</script>
+</html>
